@@ -2,9 +2,9 @@
 
 AI Canvas is an infinite-canvas learning and thinking workspace where a user asks a question and the backend turns it into a visual explanation on the canvas.
 
-This V1 milestone reshapes the project from a fixed docs-to-cards prototype into a provider-aware AI canvas foundation. The current system can plan a visual response, gather supporting documentation, synthesize an explanation, and render a canvas cluster in the frontend.
+The project is now at a V2 foundation stage. It has moved from a fixed docs-to-cards prototype into a provider-aware AI canvas system with multi-source research and browser-local BYOK runtime settings.
 
-## V1 Scope
+## V2 Scope
 
 - Infinite canvas frontend built with `tldraw`
 - FastAPI backend with streamed progress updates over SSE
@@ -19,6 +19,14 @@ This V1 milestone reshapes the project from a fixed docs-to-cards prototype into
   - `research`
   - `synthesis`
   - `canvas`
+- Multi-source research inputs:
+  - Context7
+  - MCP docs
+  - Firecrawl
+  - Tavily
+- Browser-local BYOK settings for:
+  - model providers
+  - research connectors
 
 ## Architecture
 
@@ -40,6 +48,10 @@ The backend streams staged events to the frontend:
 - `explanation_ready`
 - `canvas_ready`
 - `done`
+
+The frontend also reads runtime capability metadata from:
+
+- `GET /runtime/capabilities`
 
 ## Project Structure
 
@@ -127,12 +139,19 @@ npx tsc --noEmit
 - Multi-source research foundation with Context7 plus optional Firecrawl and Tavily connectors
 - Runtime capabilities endpoint for provider and connector readiness
 - Provider selection in the input UI
-- PR summary for this milestone in `docs/PR_V1_AI_CANVAS_FOUNDATION.md`
+- Browser-local runtime settings panel for BYOK testing
+- Per-request runtime key overrides so `.env` is optional during testing
+
+## Release Notes
+
+- V1 summary: `docs/PR_V1_AI_CANVAS_FOUNDATION.md`
+- V2 summary: `docs/PR_V2_RESEARCH_AND_BYOK.md`
+- Commit history: `docs/COMMIT_HISTORY.md`
 
 ## What Comes Next
 
-- Add better multi-source research with Context7, Firecrawl, Playwright MCP, and GitHub MCP
-- Build BYOK settings and persistence
+- Add connector ranking and fallback policy
+- Add GitHub and Playwright research connectors
 - Improve context-aware canvas placement
 - Add richer scene types for comparisons, architecture diagrams, and workflows
 - Run full end-to-end testing with live providers
