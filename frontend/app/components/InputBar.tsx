@@ -9,6 +9,19 @@ interface InputBarProps {
   statusMessage: string;
   provider: string;
   onProviderChange: (provider: string) => void;
+  providerCapabilities: Array<{
+    key: string;
+    label: string;
+    available: boolean;
+    reason: string;
+  }>;
+  connectorCapabilities: Array<{
+    key: string;
+    label: string;
+    available: boolean;
+    reason: string;
+  }>;
+  onOpenSettings: () => void;
 }
 
 export default function InputBar({
@@ -18,6 +31,9 @@ export default function InputBar({
   statusMessage,
   provider,
   onProviderChange,
+  providerCapabilities,
+  connectorCapabilities,
+  onOpenSettings,
 }: InputBarProps) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -71,6 +87,14 @@ export default function InputBar({
             className="flex-1 bg-transparent outline-none text-gray-800 placeholder-gray-400 text-sm disabled:opacity-50"
           />
 
+          <button
+            onClick={onOpenSettings}
+            type="button"
+            className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+          >
+            Settings
+          </button>
+
           {loading ? (
             <button
               onClick={onCancel}
@@ -89,6 +113,41 @@ export default function InputBar({
             </button>
           )}
         </div>
+
+        {(providerCapabilities.length > 0 || connectorCapabilities.length > 0) && (
+          <div className="mt-2 rounded-2xl border border-gray-200 bg-white/90 shadow-sm px-4 py-3">
+            <div className="flex flex-wrap gap-2 text-[11px]">
+              {providerCapabilities.map((item) => (
+                <span
+                  key={`provider-${item.key}`}
+                  className={`rounded-full border px-2.5 py-1 ${
+                    item.available
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "border-amber-200 bg-amber-50 text-amber-700"
+                  }`}
+                  title={item.reason}
+                >
+                  {item.label} {item.available ? "ready" : "needs key"}
+                </span>
+              ))}
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+              {connectorCapabilities.map((item) => (
+                <span
+                  key={`connector-${item.key}`}
+                  className={`rounded-full border px-2.5 py-1 ${
+                    item.available
+                      ? "border-sky-200 bg-sky-50 text-sky-700"
+                      : "border-gray-200 bg-gray-50 text-gray-500"
+                  }`}
+                  title={item.reason}
+                >
+                  {item.label} {item.available ? "available" : "optional"}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

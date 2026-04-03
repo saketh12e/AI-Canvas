@@ -10,7 +10,11 @@ _SKILL_CONTENT = _SKILL_PATH.read_text(encoding="utf-8")
 
 
 async def synthesis_agent_node(state: AgentState) -> AgentState:
-    llm = get_llm("synthesis", state.get("selected_provider"))
+    llm = get_llm(
+        "synthesis",
+        state.get("selected_provider"),
+        runtime_keys=state.get("runtime_keys", {}),
+    )
     evidence = state.get("evidence", [])
     evidence_blocks = []
     for item in evidence[:4]:

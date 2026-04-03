@@ -6,6 +6,7 @@ class EvidenceItem(TypedDict, total=False):
     url: str
     content: str
     source_type: str
+    query_used: str
 
 
 class SceneSpec(TypedDict, total=False):
@@ -24,6 +25,7 @@ class AgentState(TypedDict, total=False):
     base_x: int
     base_y: int
     selected_provider: Literal["gemini", "openai", "anthropic", "grok"] | str
+    runtime_keys: dict[str, str]
 
     intent: str
     visual_goal: str
@@ -33,6 +35,8 @@ class AgentState(TypedDict, total=False):
     evidence: list[EvidenceItem]
     raw_doc_content: str
     sources: list[str]
+    source_details: list[EvidenceItem]
+    research_report: dict
 
     explanation: str
     key_concepts: list[str]

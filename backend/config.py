@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     xai_api_key: str = ""
     xai_base_url: str = "https://api.x.ai/v1"
+    firecrawl_api_key: str = ""
+    firecrawl_base_url: str = "https://api.firecrawl.dev/v2"
+    tavily_api_key: str = ""
+    tavily_base_url: str = "https://api.tavily.com"
     langsmith_api_key: str = ""
     langsmith_tracing: str = "true"
     langsmith_project: str = "langcanvas"
@@ -72,5 +76,7 @@ print(f"[config] GEMINI_API_KEY: {'YES' if settings.gemini_api_key else 'NO'}")
 print(f"[config] OPENAI_API_KEY: {'YES' if settings.openai_api_key else 'NO'}")
 print(f"[config] ANTHROPIC_API_KEY: {'YES' if settings.anthropic_api_key else 'NO'}")
 print(f"[config] XAI_API_KEY: {'YES' if settings.xai_api_key else 'NO'}")
+print(f"[config] FIRECRAWL_API_KEY: {'YES' if settings.firecrawl_api_key else 'NO'}")
+print(f"[config] TAVILY_API_KEY: {'YES' if settings.tavily_api_key else 'NO'}")
 print(f"[config] GOOGLE_API_KEY env: {'YES' if os.environ.get('GOOGLE_API_KEY') else 'NO'}")
 print(f"[config] SUPABASE_URL: {settings.supabase_url[:30] if settings.supabase_url else 'EMPTY'}")

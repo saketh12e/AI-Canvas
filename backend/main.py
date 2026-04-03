@@ -14,7 +14,9 @@ from pydantic import BaseModel
 
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
+from backend.llm.factory import get_provider_capabilities
 from backend.tools.mcpdoc_tools import init_mcp_client, shutdown_mcp_client
+from backend.tools.research_registry import get_research_connector_capabilities
 from backend.db.checkpointer import get_postgres_connection_string
 from backend.agents.graph import build_graph
 from backend.config import settings
@@ -119,6 +121,7 @@ class QueryRequest(BaseModel):
     base_x: int = 0
     base_y: int = 0
     provider: str = ""
+    runtime_keys: dict[str, str] = {}
 
 
 class CanvasSaveRequest(BaseModel):
@@ -140,6 +143,7 @@ async def query_endpoint(req: QueryRequest):
             "base_x": req.base_x,
             "base_y": req.base_y,
             "selected_provider": req.provider or "",
+            "runtime_keys": req.runtime_keys or {},
             "intent": "",
             "visual_goal": "",
             "canvas_title": "",
@@ -148,6 +152,8 @@ async def query_endpoint(req: QueryRequest):
             "messages": [],
             "raw_doc_content": "",
             "sources": [],
+            "source_details": [],
+            "research_report": {},
             "explanation": "",
             "key_concepts": [],
             "code_example": "",
@@ -168,7 +174,9 @@ async def query_endpoint(req: QueryRequest):
                 elif kind == "on_chain_end" and name == "research_agent":
                     output = event.get("data", {}).get("output", {})
                     urls = output.get("sources") or []
-                    yield f"data: {json.dumps({'type': 'research_ready', 'sources': urls})}\n\n"
+                    details = output.get("source_details") or []
+                    report = output.get("research_report") or {}
+                    yield f"data: {json.dumps({'type': 'research_ready', 'sources': urls, 'source_details': details, 'connectors': report.get('connectors_used', []), 'research_report': report})}\n\n"
 
                 elif kind == "on_chain_end" and name == "synthesis_agent":
                     output = event.get("data", {}).get("output", {})
@@ -229,3 +237,11 @@ async def save_canvas(session_id: str, req: CanvasSaveRequest):
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/runtime/capabilities")
+async def runtime_capabilities():
+    return {
+        "providers": get_provider_capabilities(),
+        "connectors": get_research_connector_capabilities(),
+    }

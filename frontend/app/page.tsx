@@ -1,16 +1,30 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import InputBar from "./components/InputBar";
+import SettingsPanel, { type RuntimeKeys } from "./components/SettingsPanel";
 import SessionSidebar from "./components/SessionSidebar";
 import Canvas from "./components/Canvas";
-import { useSSEStream } from "./lib/sse";
+import { useSSEStream, type RuntimeKeysPayload } from "./lib/sse";
 import {
   mergeElements,
-  getNextBaseX,
+  getNextCanvasPlacement,
   type ExcalidrawElement,
 } from "./lib/canvas-utils";
 import type { ExcalidrawAPI } from "./components/Canvas";
+
+interface SourcePreview {
+  title: string;
+  url: string;
+  source_type: string;
+}
+
+interface RuntimeCapability {
+  key: string;
+  label: string;
+  available: boolean;
+  reason: string;
+}
 
 interface ExplanationPreview {
   query: string;
@@ -18,6 +32,7 @@ interface ExplanationPreview {
   key_concepts: string[];
   timestamp: number;
   provider: string;
+  sources: SourcePreview[];
 }
 
 export default function Home() {
@@ -28,10 +43,26 @@ export default function Home() {
   const [statusMessage, setStatusMessage] = useState("");
   const [sessionId, setSessionId] = useState<string>("");
   const [selectedProvider, setSelectedProvider] = useState("gemini");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [providerCapabilities, setProviderCapabilities] = useState<
+    RuntimeCapability[]
+  >([]);
+  const [connectorCapabilities, setConnectorCapabilities] = useState<
+    RuntimeCapability[]
+  >([]);
+  const [runtimeKeys, setRuntimeKeys] = useState<RuntimeKeys>({
+    gemini_api_key: "",
+    openai_api_key: "",
+    anthropic_api_key: "",
+    xai_api_key: "",
+    firecrawl_api_key: "",
+    tavily_api_key: "",
+  });
 
   useEffect(() => {
     const stored = localStorage.getItem("langcanvas_session_id");
     const storedProvider = localStorage.getItem("langcanvas_provider");
+    const storedRuntimeKeys = localStorage.getItem("langcanvas_runtime_keys");
     if (stored) {
       setSessionId(stored);
     } else {
@@ -42,13 +73,67 @@ export default function Home() {
     if (storedProvider) {
       setSelectedProvider(storedProvider);
     }
+    if (storedRuntimeKeys) {
+      try {
+        setRuntimeKeys((prev) => ({
+          ...prev,
+          ...(JSON.parse(storedRuntimeKeys) as RuntimeKeys),
+        }));
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:8000/runtime/capabilities")
+      .then((r) => r.json())
+      .then((data) => {
+        setProviderCapabilities(data.providers ?? []);
+        setConnectorCapabilities(data.connectors ?? []);
+      })
+      .catch(() => {});
   }, []);
 
   const canvasApiRef = useRef<ExcalidrawAPI | null>(null);
-  // Holds Supabase-loaded elements if they arrive before the canvas API is ready
   const pendingElementsRef = useRef<ExcalidrawElement[] | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingSourcesRef = useRef<SourcePreview[]>([]);
   const { stream, loading, cancel } = useSSEStream();
+
+  const effectiveProviderCapabilities = useMemo(() => {
+    const runtimePresence: Record<string, boolean> = {
+      gemini: Boolean(runtimeKeys.gemini_api_key),
+      openai: Boolean(runtimeKeys.openai_api_key),
+      anthropic: Boolean(runtimeKeys.anthropic_api_key),
+      grok: Boolean(runtimeKeys.xai_api_key),
+    };
+
+    return providerCapabilities.map((item) => {
+      const available = item.available || runtimePresence[item.key];
+      return {
+        ...item,
+        available,
+        reason: available ? "Configured in browser settings or .env" : item.reason,
+      };
+    });
+  }, [providerCapabilities, runtimeKeys]);
+
+  const effectiveConnectorCapabilities = useMemo(() => {
+    const runtimePresence: Record<string, boolean> = {
+      firecrawl: Boolean(runtimeKeys.firecrawl_api_key),
+      tavily: Boolean(runtimeKeys.tavily_api_key),
+      context7: true,
+      mcpdoc: true,
+    };
+
+    return connectorCapabilities.map((item) => {
+      const available = item.available || runtimePresence[item.key];
+      return {
+        ...item,
+        available,
+        reason: available ? "Available in browser settings or server config" : item.reason,
+      };
+    });
+  }, [connectorCapabilities, runtimeKeys]);
 
   // Load saved canvas from Supabase once session ID is available
   useEffect(() => {
@@ -88,19 +173,56 @@ export default function Home() {
   const handleQuery = useCallback(
     (query: string, provider: string) => {
       if (!sessionId) return;
-      const baseX = getNextBaseX(elements);
-      const baseY = 0;
+      const effectiveProviderReady =
+        effectiveProviderCapabilities.find((item) => item.key === provider)?.available ||
+        Boolean(
+          runtimeKeys[
+            (
+              {
+                gemini: "gemini_api_key",
+                openai: "openai_api_key",
+                anthropic: "anthropic_api_key",
+                grok: "xai_api_key",
+              } as const
+            )[provider as "gemini" | "openai" | "anthropic" | "grok"]
+          ]
+      );
+      const selectedProviderCapability = effectiveProviderCapabilities.find(
+        (item) => item.key === provider
+      );
+      if (selectedProviderCapability && !effectiveProviderReady) {
+        setStatusMessage(
+          `${selectedProviderCapability.label} is not configured yet. Add its API key in Settings or .env before testing.`
+        );
+        setTimeout(() => setStatusMessage(""), 4500);
+        return;
+      }
+      const placement = getNextCanvasPlacement(elements);
+      pendingSourcesRef.current = [];
 
-      stream(query, sessionId, baseX, baseY, provider, {
+      stream(
+        query,
+        sessionId,
+        placement.baseX,
+        placement.baseY,
+        provider,
+        runtimeKeys as RuntimeKeysPayload,
+        {
         onPlanReady: (plan) => {
           setStatusMessage(
             `Planning a ${plan.visual_goal.replace("_", " ")} canvas…`
           );
         },
-        onResearchReady: (sources) => {
+        onResearchReady: (sources, sourceDetails, connectors, researchReport) => {
+          pendingSourcesRef.current = sourceDetails;
+          const connectorsUsed = researchReport.connectors_used ?? connectors;
+          const connectorLabel =
+            connectorsUsed.length > 0
+              ? ` via ${connectorsUsed.join(" + ")}`
+              : "";
           setStatusMessage(
             sources.length > 0
-              ? `Collected ${sources.length} source${sources.length === 1 ? "" : "s"}…`
+              ? `Collected ${sources.length} source${sources.length === 1 ? "" : "s"}${connectorLabel}…`
               : "Gathering context…"
           );
         },
@@ -114,6 +236,7 @@ export default function Home() {
               key_concepts: data.key_concepts,
               timestamp: Date.now(),
               provider,
+              sources: pendingSourcesRef.current,
             },
           ]);
         },
@@ -132,7 +255,7 @@ export default function Home() {
         },
       });
     },
-    [elements, sessionId, stream]
+    [elements, effectiveProviderCapabilities, runtimeKeys, sessionId, stream]
   );
 
   return (
@@ -160,6 +283,19 @@ export default function Home() {
         onProviderChange={(provider) => {
           setSelectedProvider(provider);
           localStorage.setItem("langcanvas_provider", provider);
+        }}
+        providerCapabilities={effectiveProviderCapabilities}
+        connectorCapabilities={effectiveConnectorCapabilities}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
+      <SettingsPanel
+        open={settingsOpen}
+        runtimeKeys={runtimeKeys}
+        onClose={() => setSettingsOpen(false)}
+        onRuntimeKeyChange={(key, value) => {
+          const next = { ...runtimeKeys, [key]: value };
+          setRuntimeKeys(next);
+          localStorage.setItem("langcanvas_runtime_keys", JSON.stringify(next));
         }}
       />
     </main>

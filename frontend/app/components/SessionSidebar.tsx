@@ -8,6 +8,11 @@ interface ExplanationPreview {
   key_concepts: string[];
   timestamp: number;
   provider: string;
+  sources: Array<{
+    title: string;
+    url: string;
+    source_type: string;
+  }>;
 }
 
 interface SessionSidebarProps {
@@ -84,6 +89,21 @@ export default function SessionSidebar({
                 </span>
               ))}
             </div>
+            {item.sources.length > 0 && (
+              <div className="pt-1 space-y-1">
+                {item.sources.slice(0, 2).map((source) => (
+                  <a
+                    key={`${item.timestamp}-${source.url}`}
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block rounded border border-gray-200 bg-white px-2 py-1 text-[10px] text-gray-500 hover:border-blue-200 hover:text-blue-700"
+                  >
+                    {source.source_type} · {source.title}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>

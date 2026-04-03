@@ -124,6 +124,8 @@ npx tsc --noEmit
 - Provider-aware LLM factory
 - New LangGraph V2 pipeline
 - Scene-based canvas rendering foundation
+- Multi-source research foundation with Context7 plus optional Firecrawl and Tavily connectors
+- Runtime capabilities endpoint for provider and connector readiness
 - Provider selection in the input UI
 - PR summary for this milestone in `docs/PR_V1_AI_CANVAS_FOUNDATION.md`
 

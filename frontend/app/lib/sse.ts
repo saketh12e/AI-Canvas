@@ -6,7 +6,19 @@ export interface SSECallbacks {
     visual_goal: string;
     canvas_title: string;
   }) => void;
-  onResearchReady?: (sources: string[]) => void;
+  onResearchReady?: (
+    sources: string[],
+    sourceDetails: Array<{
+      title: string;
+      url: string;
+      source_type: string;
+    }>,
+    connectors: string[],
+    researchReport: {
+      connectors_used?: string[];
+      source_count?: number;
+    }
+  ) => void;
   onExplanationReady?: (data: {
     explanation: string;
     key_concepts: string[];
@@ -15,6 +27,15 @@ export interface SSECallbacks {
   onCanvasReady?: (elements: unknown[], sessionId: string) => void;
   onDone?: () => void;
   onError?: (message: string) => void;
+}
+
+export interface RuntimeKeysPayload {
+  gemini_api_key?: string;
+  openai_api_key?: string;
+  anthropic_api_key?: string;
+  xai_api_key?: string;
+  firecrawl_api_key?: string;
+  tavily_api_key?: string;
 }
 
 export function useSSEStream() {
@@ -28,6 +49,7 @@ export function useSSEStream() {
       baseX: number,
       baseY: number,
       provider: string,
+      runtimeKeys: RuntimeKeysPayload,
       callbacks: SSECallbacks
     ) => {
       // Cancel any in-flight request
@@ -47,6 +69,7 @@ export function useSSEStream() {
             base_x: baseX,
             base_y: baseY,
             provider,
+            runtime_keys: runtimeKeys,
           }),
           signal: controller.signal,
         });
@@ -86,7 +109,12 @@ export function useSSEStream() {
                   });
                   break;
                 case "research_ready":
-                  callbacks.onResearchReady?.(event.sources ?? []);
+                  callbacks.onResearchReady?.(
+                    event.sources ?? [],
+                    event.source_details ?? [],
+                    event.connectors ?? [],
+                    event.research_report ?? {}
+                  );
                   break;
                 case "explanation_ready":
                   callbacks.onExplanationReady?.({

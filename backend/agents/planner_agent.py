@@ -29,7 +29,11 @@ def _fallback_plan(user_query: str) -> dict:
 
 
 async def planner_agent_node(state: AgentState) -> AgentState:
-    llm = get_llm("planner", state.get("selected_provider"))
+    llm = get_llm(
+        "planner",
+        state.get("selected_provider"),
+        runtime_keys=state.get("runtime_keys", {}),
+    )
     user_message = (
         f"User request: {state['user_query']}\n\n"
         "Return a single JSON object describing the best visual treatment."

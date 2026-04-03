@@ -27,7 +27,11 @@ def _fallback_scene(state: AgentState) -> dict:
 
 
 async def canvas_agent_node(state: AgentState) -> AgentState:
-    llm = get_llm("canvas", state.get("selected_provider"))
+    llm = get_llm(
+        "canvas",
+        state.get("selected_provider"),
+        runtime_keys=state.get("runtime_keys", {}),
+    )
     user_message = (
         f"User request: {state['user_query']}\n"
         f"Canvas title: {state.get('canvas_title', state['user_query'])}\n"

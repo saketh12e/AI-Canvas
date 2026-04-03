@@ -9,6 +9,17 @@ export interface ExcalidrawElement {
   [key: string]: unknown;
 }
 
+export interface CanvasPlacement {
+  baseX: number;
+  baseY: number;
+}
+
+const DEFAULT_CLUSTER_WIDTH = 1160;
+const DEFAULT_CLUSTER_HEIGHT = 920;
+const DEFAULT_GAP_X = 140;
+const DEFAULT_GAP_Y = 180;
+const DEFAULT_WRAP_WIDTH = 2800;
+
 /**
  * Returns the rightmost x coordinate across all existing elements.
  * Handles both tldraw-native shapes (props.w) and legacy shapes (width).
@@ -21,11 +32,30 @@ export function getRightmostX(elements: ExcalidrawElement[]): number {
 }
 
 /**
- * Returns the next base_x for a new cluster — rightmost + 100px gap.
+ * Returns the next placement for a new cluster.
+ * The V2 layout wraps after the board becomes too wide instead of appending forever.
  */
-export function getNextBaseX(elements: ExcalidrawElement[]): number {
+export function getNextCanvasPlacement(
+  elements: ExcalidrawElement[]
+): CanvasPlacement {
+  if (elements.length === 0) {
+    return { baseX: 0, baseY: 0 };
+  }
+
   const rightmost = getRightmostX(elements);
-  return rightmost === 0 ? 0 : rightmost + 100;
+  const bottommost = Math.max(
+    ...elements.map((el) => (el.y ?? 0) + (el.props?.h ?? el.height ?? 0))
+  );
+
+  const nextX = rightmost + DEFAULT_GAP_X;
+  if (nextX + DEFAULT_CLUSTER_WIDTH <= DEFAULT_WRAP_WIDTH) {
+    return { baseX: nextX, baseY: 0 };
+  }
+
+  return {
+    baseX: 0,
+    baseY: bottommost + DEFAULT_GAP_Y,
+  };
 }
 
 /**

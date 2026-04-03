@@ -7,9 +7,48 @@ def _uid() -> str:
     return uuid.uuid4().hex[:6]
 
 
+def _layout_positions(layout: str, base_x: int, base_y: int) -> dict[str, tuple[int, int]]:
+    if layout == "flowchart":
+        return {
+            "title": (base_x, base_y - 110),
+            "summary": (base_x + 220, base_y),
+            "concepts": (base_x + 220, base_y + 320),
+            "code": (base_x + 220, base_y + 620),
+            "sources": (base_x + 760, base_y + 160),
+        }
+
+    if layout == "architecture":
+        return {
+            "title": (base_x, base_y - 110),
+            "summary": (base_x, base_y),
+            "concepts": (base_x + 460, base_y),
+            "code": (base_x, base_y + 340),
+            "sources": (base_x + 820, base_y + 40),
+        }
+
+    if layout == "comparison":
+        return {
+            "title": (base_x, base_y - 110),
+            "summary": (base_x + 180, base_y),
+            "concepts": (base_x, base_y + 280),
+            "code": (base_x + 420, base_y + 280),
+            "sources": (base_x + 840, base_y + 280),
+        }
+
+    return {
+        "title": (base_x, base_y - 110),
+        "summary": (base_x, base_y),
+        "concepts": (base_x + 420, base_y),
+        "code": (base_x, base_y + 320),
+        "sources": (base_x + 800, base_y + 10),
+    }
+
+
 def render_scene_to_elements(scene: dict, base_x: int = 0, base_y: int = 0) -> list[dict]:
     h = _uid()
     shapes = []
+    layout = str(scene.get("layout", "concept_map"))
+    positions = _layout_positions(layout, base_x, base_y)
     title = str(scene.get("title", "AI Canvas"))
     summary = str(scene.get("summary", ""))[:900]
     key_points = [str(item) for item in scene.get("key_points", [])[:8]]
@@ -19,8 +58,8 @@ def render_scene_to_elements(scene: dict, base_x: int = 0, base_y: int = 0) -> l
     shapes.append({
         "id": f"shape:title-{h}",
         "type": "geo",
-        "x": base_x,
-        "y": base_y - 110,
+        "x": positions["title"][0],
+        "y": positions["title"][1],
         "props": {
             "geo": "rectangle",
             "w": 420,
@@ -35,8 +74,8 @@ def render_scene_to_elements(scene: dict, base_x: int = 0, base_y: int = 0) -> l
     shapes.append({
         "id": f"shape:summary-{h}",
         "type": "geo",
-        "x": base_x,
-        "y": base_y,
+        "x": positions["summary"][0],
+        "y": positions["summary"][1],
         "props": {
             "geo": "rectangle",
             "w": 360,
@@ -52,8 +91,8 @@ def render_scene_to_elements(scene: dict, base_x: int = 0, base_y: int = 0) -> l
     shapes.append({
         "id": f"shape:concepts-{h}",
         "type": "geo",
-        "x": base_x + 420,
-        "y": base_y,
+        "x": positions["concepts"][0],
+        "y": positions["concepts"][1],
         "props": {
             "geo": "rectangle",
             "w": 300,
@@ -69,8 +108,8 @@ def render_scene_to_elements(scene: dict, base_x: int = 0, base_y: int = 0) -> l
     shapes.append({
         "id": f"shape:code-{h}",
         "type": "geo",
-        "x": base_x,
-        "y": base_y + 320,
+        "x": positions["code"][0],
+        "y": positions["code"][1],
         "props": {
             "geo": "rectangle",
             "w": 720,
@@ -85,8 +124,8 @@ def render_scene_to_elements(scene: dict, base_x: int = 0, base_y: int = 0) -> l
     shapes.append({
         "id": f"shape:sources-{h}",
         "type": "geo",
-        "x": base_x + 800,
-        "y": base_y + 10,
+        "x": positions["sources"][0],
+        "y": positions["sources"][1],
         "props": {
             "geo": "rectangle",
             "w": 300,
@@ -101,11 +140,15 @@ def render_scene_to_elements(scene: dict, base_x: int = 0, base_y: int = 0) -> l
     shapes.append({
         "id": f"shape:arrow1-{h}",
         "type": "arrow",
-        "x": base_x + 360,
-        "y": base_y + 110,
+        "x": positions["summary"][0] + 360,
+        "y": positions["summary"][1] + 110,
         "props": {
             "start": {"type": "point", "x": 0, "y": 0},
-            "end":   {"type": "point", "x": 60, "y": 0},
+            "end":   {
+                "type": "point",
+                "x": positions["concepts"][0] - positions["summary"][0] - 360,
+                "y": positions["concepts"][1] - positions["summary"][1],
+            },
             "color": "grey",
         },
     })
@@ -113,11 +156,15 @@ def render_scene_to_elements(scene: dict, base_x: int = 0, base_y: int = 0) -> l
     shapes.append({
         "id": f"shape:arrow2-{h}",
         "type": "arrow",
-        "x": base_x + 520,
-        "y": base_y + 240,
+        "x": positions["concepts"][0] + 100,
+        "y": positions["concepts"][1] + 220,
         "props": {
             "start": {"type": "point", "x": 0, "y": 0},
-            "end":   {"type": "point", "x": -120, "y": 110},
+            "end":   {
+                "type": "point",
+                "x": positions["code"][0] - positions["concepts"][0] - 100,
+                "y": positions["code"][1] - positions["concepts"][1] - 220,
+            },
             "color": "grey",
         },
     })
@@ -125,11 +172,15 @@ def render_scene_to_elements(scene: dict, base_x: int = 0, base_y: int = 0) -> l
     shapes.append({
         "id": f"shape:arrow3-{h}",
         "type": "arrow",
-        "x": base_x + 720,
-        "y": base_y + 120,
+        "x": positions["concepts"][0] + 300,
+        "y": positions["concepts"][1] + 120,
         "props": {
             "start": {"type": "point", "x": 0, "y": 0},
-            "end":   {"type": "point", "x": 80, "y": 0},
+            "end":   {
+                "type": "point",
+                "x": positions["sources"][0] - positions["concepts"][0] - 300,
+                "y": positions["sources"][1] - positions["concepts"][1] - 120,
+            },
             "color": "grey",
         },
     })
