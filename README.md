@@ -2,7 +2,7 @@
 
 AI Canvas is an infinite-canvas learning and thinking workspace where a user asks a question and the backend turns it into a visual explanation on the canvas.
 
-The project is now at a V2 foundation stage. It has moved from a fixed docs-to-cards prototype into a provider-aware AI canvas system with multi-source research and browser-local BYOK runtime settings.
+The project is now at a completed V2 milestone for the current build cycle. It has moved from a fixed docs-to-cards prototype into a provider-aware AI canvas system with multi-source research, connector planning/fallback, GitHub repo research, and browser-local BYOK runtime settings.
 
 ## V2 Scope
 
@@ -24,6 +24,8 @@ The project is now at a V2 foundation stage. It has moved from a fixed docs-to-c
   - MCP docs
   - Firecrawl
   - Tavily
+  - GitHub
+- Connector planning and fallback orchestration
 - Browser-local BYOK settings for:
   - model providers
   - research connectors
@@ -137,21 +139,25 @@ npx tsc --noEmit
 - New LangGraph V2 pipeline
 - Scene-based canvas rendering foundation
 - Multi-source research foundation with Context7 plus optional Firecrawl and Tavily connectors
+- GitHub repo-aware research connector and connector planning/fallback flow
 - Runtime capabilities endpoint for provider and connector readiness
 - Provider selection in the input UI
 - Browser-local runtime settings panel for BYOK testing
 - Per-request runtime key overrides so `.env` is optional during testing
+- GitHub repo-aware research connector
+- Connector plan and fallback flow in the research layer
 
 ## Release Notes
 
 - V1 summary: `docs/PR_V1_AI_CANVAS_FOUNDATION.md`
 - V2 summary: `docs/PR_V2_RESEARCH_AND_BYOK.md`
 - Commit history: `docs/COMMIT_HISTORY.md`
+- Run guide: `docs/RUN_GUIDE.md`
 
-## What Comes Next
+## V3 Ideas
 
-- Add connector ranking and fallback policy
-- Add GitHub and Playwright research connectors
-- Improve context-aware canvas placement
+- Add Playwright research connector for dynamic browser-only pages
+- Add deeper GitHub code/file search and repo-aware follow-up flows
+- Improve context-aware canvas placement further
 - Add richer scene types for comparisons, architecture diagrams, and workflows
-- Run full end-to-end testing with live providers
+- Run broader end-to-end testing with live keys

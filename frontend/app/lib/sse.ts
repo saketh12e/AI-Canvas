@@ -34,6 +34,7 @@ export interface RuntimeKeysPayload {
   openai_api_key?: string;
   anthropic_api_key?: string;
   xai_api_key?: string;
+  github_token?: string;
   firecrawl_api_key?: string;
   tavily_api_key?: string;
 }

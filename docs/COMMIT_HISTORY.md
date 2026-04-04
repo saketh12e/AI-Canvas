@@ -13,7 +13,16 @@
   - browser-local BYOK settings panel
   - per-request runtime key overrides
 
+## Current Working Tree Milestone
+
+- V2 completion work in progress:
+  - connector planning and fallback
+  - GitHub repo-aware research connector
+  - run guide and V2 completion docs
+
 ## Release Documents
 
 - `docs/PR_V1_AI_CANVAS_FOUNDATION.md`
 - `docs/PR_V2_RESEARCH_AND_BYOK.md`
+- `docs/PR_V2_COMPLETE.md`
+- `docs/RUN_GUIDE.md`

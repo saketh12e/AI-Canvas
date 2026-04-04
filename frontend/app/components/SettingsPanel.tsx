@@ -9,6 +9,7 @@ export interface RuntimeKeys {
   xai_api_key: string;
   firecrawl_api_key: string;
   tavily_api_key: string;
+  github_token: string;
 }
 
 interface SettingsPanelProps {
@@ -23,6 +24,7 @@ const FIELD_LABELS: Array<{ key: keyof RuntimeKeys; label: string; placeholder: 
   { key: "openai_api_key", label: "OpenAI API Key", placeholder: "sk-..." },
   { key: "anthropic_api_key", label: "Anthropic API Key", placeholder: "sk-ant-..." },
   { key: "xai_api_key", label: "Grok / xAI API Key", placeholder: "xai-..." },
+  { key: "github_token", label: "GitHub Token", placeholder: "ghp_..." },
   { key: "firecrawl_api_key", label: "Firecrawl API Key", placeholder: "fc-..." },
   { key: "tavily_api_key", label: "Tavily API Key", placeholder: "tvly-..." },
 ];

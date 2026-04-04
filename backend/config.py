@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     firecrawl_base_url: str = "https://api.firecrawl.dev/v2"
     tavily_api_key: str = ""
     tavily_base_url: str = "https://api.tavily.com"
+    github_token: str = ""
+    github_api_base_url: str = "https://api.github.com"
     langsmith_api_key: str = ""
     langsmith_tracing: str = "true"
     langsmith_project: str = "langcanvas"
@@ -78,5 +80,6 @@ print(f"[config] ANTHROPIC_API_KEY: {'YES' if settings.anthropic_api_key else 'N
 print(f"[config] XAI_API_KEY: {'YES' if settings.xai_api_key else 'NO'}")
 print(f"[config] FIRECRAWL_API_KEY: {'YES' if settings.firecrawl_api_key else 'NO'}")
 print(f"[config] TAVILY_API_KEY: {'YES' if settings.tavily_api_key else 'NO'}")
+print(f"[config] GITHUB_TOKEN: {'YES' if settings.github_token else 'NO'}")
 print(f"[config] GOOGLE_API_KEY env: {'YES' if os.environ.get('GOOGLE_API_KEY') else 'NO'}")
 print(f"[config] SUPABASE_URL: {settings.supabase_url[:30] if settings.supabase_url else 'EMPTY'}")

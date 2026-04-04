@@ -154,6 +154,7 @@ async def query_endpoint(req: QueryRequest):
             "sources": [],
             "source_details": [],
             "research_report": {},
+            "connector_plan": [],
             "explanation": "",
             "key_concepts": [],
             "code_example": "",

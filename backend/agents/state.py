@@ -37,6 +37,7 @@ class AgentState(TypedDict, total=False):
     sources: list[str]
     source_details: list[EvidenceItem]
     research_report: dict
+    connector_plan: list[str]
 
     explanation: str
     key_concepts: list[str]

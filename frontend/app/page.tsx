@@ -55,6 +55,7 @@ export default function Home() {
     openai_api_key: "",
     anthropic_api_key: "",
     xai_api_key: "",
+    github_token: "",
     firecrawl_api_key: "",
     tavily_api_key: "",
   });
@@ -121,6 +122,7 @@ export default function Home() {
     const runtimePresence: Record<string, boolean> = {
       firecrawl: Boolean(runtimeKeys.firecrawl_api_key),
       tavily: Boolean(runtimeKeys.tavily_api_key),
+      github: Boolean(runtimeKeys.github_token),
       context7: true,
       mcpdoc: true,
     };
